@@ -9,10 +9,12 @@
 # Path for the phonebook.
 $PbkPath = Join-Path $env:PROGRAMDATA 'Microsoft\Network\Connections\Pbk\rasphone.Pbk'
 
-# Update these variables with the actual VPN name, address, and PSK.
+# Update these variables with the actual VPN name, address, PSK, Routed Networks, and Local Domain Name.
 $ConnectionName = 'VPN name'
 $ServerAddress = 'pretend.host.com'
 $PresharedKey = 'fake PSK'
+$RouteList = @('10.0.1.0/24', '10.1.0.0/16', '10.2.0.0/16')
+$LocalDomain = @('somedomain.local')
 
 # If no VPNs, rasphone.Pbk may not already exist.
 # If file does not exist, then create an empty placeholder.
@@ -41,6 +43,9 @@ Add-VpnConnection -Name $ConnectionName -ServerAddress $ServerAddress -AllUserCo
 Start-Sleep -m 100
 Set-VpnConnection -Name $ConnectionName -SplitTunneling $True -AllUserConnection -WA SilentlyContinue
 
+# Sets the Global DNS Suffix Search List
+Set-DnsClientGlobalSetting -SuffixSearchList $LocalDomain
+
 # If you need parameters to add metrics or for IPv6 subnets, open Powershell and run:
 # get-help add-vpnconnectionroute -full
 # This will give the full list of valid parameters for Add-Vpnconnectionroute and
@@ -51,7 +56,6 @@ Set-VpnConnection -Name $ConnectionName -SplitTunneling $True -AllUserConnection
 # Split tunnels must have at least one route.
 # Comment out for full tunnel.
 
-$RouteList = @('10.0.1.0/24', '10.1.0.0/16', '10.2.0.0/16')
 Foreach ($Destination in $RouteList)
 {
     Add-Vpnconnectionroute -Connectionname $ConnectionName -AllUserConnection -DestinationPrefix $Destination
